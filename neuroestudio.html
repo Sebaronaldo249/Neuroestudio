@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Interactiva para el Estudio Óptimo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: The application uses a "Hub-and-Spoke" model. A central dashboard introduces the holistic concept of optimal study, with navigation elements (spokes) leading to eight distinct thematic sections. A persistent top navigation bar allows for easy, non-linear exploration. This structure was chosen to make the dense information digestible, allow users to jump to topics of interest, and visually reinforce the interconnectedness of the study pillars, culminating in a practical, integrated routine. -->
+    <!-- Visualization & Content Choices: The application uses a mix of interactive cards, accordions, and charts from Chart.js to present information dynamically. For example, a bar chart compares study method effectiveness, a line chart illustrates sleep cycles, and an HTML/CSS diagram shows the habit loop. These choices were made to translate abstract concepts into clear, engaging visuals that enhance understanding and retention, all while adhering to the NO SVG/Mermaid constraint. The final section synthesizes everything into an actionable timeline. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4; /* Warm Neutral Background */
+            color: #3D405B; /* Primary Dark Text */
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.25rem;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #E07A5F; /* Accent Color */
+            border-bottom-color: #E07A5F;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            border-radius: 16px; /* Slightly more rounded */
+            padding: 2.5rem; /* Increased padding for more space inside */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08); /* Stronger subtle shadow */
+        }
+        .card:hover {
+            transform: translateY(-8px); /* More pronounced lift */
+            box-shadow: 0 16px 32px rgba(0,0,0,0.15); /* Stronger shadow on hover */
+        }
+        .pill-button {
+            transition: all 0.3s ease;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%; /* Ensure it takes full width of its parent */
+            /* Removed max-width and margin-left/right from CSS for more flexible control via Tailwind classes */
+            height: 350px; /* Slightly taller charts */
+            max-height: 450px;
+            background-color: #FFFFFF; /* Chart background */
+            border-radius: 16px; /* Match card radius */
+            padding: 1.5rem; /* Increased padding */
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+            border: 2px solid #3D405B; /* Default border for charts */
+        }
+        /* Specific border colors for charts */
+        #studyMethodsChart + div { border-color: #3D405B; } /* Dark text color for Methods chart */
+        #sleepChart + div { border-color: #81B29A; } /* Green accent for Sleep chart */
+        #meditationChart + div { border-color: #E07A5F; } /* Orange accent for Meditation chart */
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .accordion-header {
+            cursor: pointer;
+            padding: 0.75rem 0; /* More padding */
+        }
+        .accordion-content {
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.4s ease-out; /* Smoother transition */
+            max-height: 0;
+            opacity: 0;
+        }
+        .accordion-content.open {
+            max-height: 1500px; /* Increased to accommodate more content and future expansions */
+            opacity: 1;
+        }
+        /* Custom checkbox styling */
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 1.75rem; /* Slightly larger */
+            height: 1.75rem; /* Slightly larger */
+            border: 2px solid #9CA3AF; /* gray-400 */
+            border-radius: 0.5rem; /* More rounded */
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .custom-checkbox:checked {
+            background-color: #81B29A; /* Green accent */
+            border-color: #81B29A;
+        }
+        .custom-checkbox:checked::before {
+            content: '✓';
+            color: white;
+            font-size: 1.25rem; /* Larger checkmark */
+            line-height: 1;
+        }
+        .custom-checkbox:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(129, 178, 154, 0.4); /* Stronger focus ring */
+        }
+
+        /* Custom light background colors for cards */
+        .card-light-orange { background-color: #FDF4F2; } /* Very light tint of E07A5F */
+        .card-light-green { background-color: #F5F9F7; } /* Very light tint of 81B29A */
+        .card-light-yellow { background-color: #FFFCEF; } /* Very light tint of F4A261 */
+        .card-light-teal { background-color: #F1FBF9; } /* Very light tint of 2A9D8F */
+
+        /* Make strong text even bolder */
+        strong {
+            font-weight: 800; /* A higher value than default 'bold' (700) */
+        }
+
+        /* Styles for Schema Example */
+        .schema-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            background-color: #fcfcfc;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Subtle shadow for the container */
+        }
+        .schema-level-1 {
+            background-color: #fce4d6; /* Slightly more saturated orange tint */
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            color: #C25B42; /* Darker orange text for contrast */
+            border-left: 5px solid #E07A5F; /* Thicker, main accent color */
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08); /* Subtle shadow for each level */
+        }
+        .schema-level-2 {
+            background-color: #d6f2e0; /* Slightly more saturated green tint */
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #5C8E6D; /* Darker green text for contrast */
+            border-left: 5px solid #81B29A;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .schema-level-3 {
+            background-color: #fff0d6; /* Slightly more saturated yellow tint */
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-left: 3rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #B27B3D; /* Darker yellow/orange text for contrast */
+            border-left: 5px solid #F4A261;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .schema-level-4 {
+            background-color: #d6f7f9; /* Slightly more saturated teal tint */
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-left: 4.5rem;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            color: #1E7B70; /* Darker teal text for contrast */
+            border-left: 5px solid #2A9D8F;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        /* Styles for Mind Map Example (reverted to text-based, but with enhanced styling) */
+        .mindmap-example-text {
+            white-space: pre; /* Preserve whitespace for ASCII art */
+            font-family: 'Inter', monospace; /* Use monospace for alignment */
+            font-size: 0.9rem; /* Slightly larger font */
+            line-height: 1.4; /* More spacing */
+            background-color: #fcfcfc;
+            padding: 2rem; /* More padding */
+            border-radius: 12px; /* More rounded corners */
+            border: 2px solid #ddd; /* More prominent border */
+            color: #3D405B; /* Default text color */
+            overflow-x: auto; /* Allow horizontal scrolling for wide maps */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* More pronounced shadow */
+            text-align: center; /* Center the text content */
+        }
+        /* Specific colors for mind map elements within the pre tag */
+        .mm-center { color: #E07A5F; font-weight: 800; } /* Main accent color, extra bold */
+        .mm-branch { color: #3D405B; font-weight: 700; } /* Dark text, bold */
+        .mm-sub-branch { color: #81B29A; font-weight: 600; } /* Green accent, semi-bold */
+        .mm-connector { color: #F4A261; } /* Orange accent for connectors */
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/90 backdrop-blur-lg sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-extrabold text-[#3D405B] tracking-tight">
+                    <span class="text-[#E07A5F]">Neuro</span>Estudio
+                </div>
+                <div class="hidden md:flex items-center space-x-10">
+                    <a href="#pilares" class="nav-link font-medium text-lg">Pilares</a>
+                    <a href="#diagnostico" class="nav-link font-medium text-lg">Diagnóstico</a>
+                    <a href="#metodos" class="nav-link font-medium text-lg">Métodos</a>
+                    <a href="#concentracion" class="nav-link font-medium text-lg">Foco</a>
+                    <a href="#sueno" class="nav-link font-medium text-lg">Sueño</a>
+                    <a href="#rutina" class="nav-link font-bold text-[#81B29A] hover:text-[#E07A5F] text-lg">Rutina Integral</a>
+                    <a href="#faq" class="nav-link font-medium text-lg">FAQ</a>
+                    <a href="#recursos" class="nav-link font-medium text-lg">Recursos</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="menu-btn" class="text-gray-600 focus:outline-none p-2 rounded-md hover:bg-gray-100">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-3">
+                <a href="#pilares" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">Pilares</a>
+                <a href="#diagnostico" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">Diagnóstico</a>
+                <a href="#metodos" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">Métodos</a>
+                <a href="#concentracion" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">Foco</a>
+                <a href="#sueno" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">Sueño</a>
+                <a href="#rutina" class="block py-3 px-4 text-base rounded-lg nav-link font-bold text-[#81B29A] hover:text-[#E07A5F] bg-gray-50 hover:bg-gray-100">Rutina Integral</a>
+                <a href="#faq" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">FAQ</a>
+                <a href="#recursos" class="block py-3 px-4 text-base rounded-lg nav-link bg-gray-50 hover:bg-gray-100">Recursos</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-8 py-20">
+        <section id="hero" class="text-center mb-40">
+            <h1 class="text-6xl md:text-8xl font-extrabold mb-8 leading-tight text-[#3D405B]">
+                La Ciencia de <span class="text-[#E07A5F]">Aprender Mejor</span>
+            </h1>
+            <p class="text-xl md:text-2xl max-w-4xl mx-auto text-gray-700 leading-relaxed">
+                Descubre una rutina de estudio integral, basada en evidencia científica, que unifica mente, cuerpo y hábitos para potenciar tu aprendizaje y bienestar.
+            </p>
+        </section>
+
+        <section id="pilares" class="mb-40">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">Los 8 Pilares del Estudio Óptimo</h2>
+            <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                El aprendizaje eficaz no depende de un solo factor, sino de un ecosistema de hábitos interconectados. Cada pilar apoya y fortalece a los demás, creando un ciclo virtuoso de rendimiento cognitivo. Explora cada uno para entender su fundamento científico y su rol en tu rutina.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-16">
+                <a href="#metodos" class="card text-center flex flex-col items-center p-8 card-light-orange border-2 border-[#E07A5F]">
+                    <div class="text-6xl mb-4">🧠</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Métodos Eficaces</h3>
+                    <p class="text-gray-600 leading-relaxed">Aprende cómo aprender con técnicas validadas.</p>
+                </a>
+                <a href="#concentracion" class="card text-center flex flex-col items-center p-8 card-light-green border-2 border-[#81B29A]">
+                    <div class="text-6xl mb-4">🎯</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Concentración</h3>
+                    <p class="text-gray-600 leading-relaxed">Domina tu foco y vence las distracciones.</p>
+                </a>
+                <a href="#sueno" class="card text-center flex flex-col items-center p-8 card-light-yellow border-2 border-[#F4A261]">
+                    <div class="text-6xl mb-4">😴</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Descanso</h3>
+                    <p class="text-gray-600 leading-relaxed">Consolida tu memoria mientras duermes.</p>
+                </a>
+                <a href="#nutricion" class="card text-center flex flex-col items-center p-8 card-light-teal border-2 border-[#2A9D8F]">
+                    <div class="text-6xl mb-4">🍎</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Nutrición</h3>
+                    <p class="text-gray-600 leading-relaxed">El combustible adecuado para tu cerebro.</p>
+                </a>
+                <a href="#ejercicio" class="card text-center flex flex-col items-center p-8 card-light-orange border-2 border-[#E07A5F]">
+                    <div class="text-6xl mb-4">🏃‍♂️</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Actividad Física</h3>
+                    <p class="text-gray-600 leading-relaxed">Genera nuevas neuronas y reduce el estrés.</p>
+                </a>
+                <a href="#tecnologia" class="card text-center flex flex-col items-center p-8 card-light-green border-2 border-[#81B29A]">
+                    <div class="text-6xl mb-4">📱</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Uso de Tecnología</h3>
+                    <p class="text-gray-600 leading-relaxed">Gestiona el impacto del mundo digital.</p>
+                </a>
+                <a href="#habitos" class="card text-center flex flex-col items-center p-8 card-light-yellow border-2 border-[#F4A261]">
+                    <div class="text-6xl mb-4">🔄</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Creación de Hábitos</h3>
+                    <p class="text-gray-600 leading-relaxed">La neurociencia del cambio duradero.</p>
+                </a>
+                <a href="#meditacion" class="card text-center flex flex-col items-center p-8 card-light-teal border-2 border-[#2A9D8F]">
+                    <div class="text-6xl mb-4">🧘‍♀️</div>
+                    <h3 class="text-2xl font-semibold mb-2 text-[#3D405B]">Meditación</h3>
+                    <p class="text-gray-600 leading-relaxed">Calma tu mente, potencia tu atención.</p>
+                </a>
+            </div>
+        </section>
+
+        <section id="diagnostico" class="mb-40 scroll-mt-28">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">✨ Diagnóstico Rápido de Hábitos</h2>
+            <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-16 leading-relaxed">
+                Responde estas preguntas para obtener recomendaciones personalizadas sobre qué pilares podrías fortalecer en tu rutina de estudio.
+            </p>
+            <div class="card p-8 card-light-green border-2 border-[#81B29A]">
+                <form id="habit-quiz" class="space-y-8">
+                    <div>
+                        <label for="sleep-hours" class="block text-lg font-semibold mb-3 text-[#3D405B]">1. ¿Cuántas horas duermes en promedio por noche?</label>
+                        <select id="sleep-hours" name="sleep-hours" class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#81B29A] focus:border-transparent">
+                            <option value="less-6">Menos de 6 horas</option>
+                            <option value="6-7">6-7 horas</option>
+                            <option value="7-9">7-9 horas (Recomendado)</option>
+                            <option value="more-9">Más de 9 horas</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="exercise-frequency" class="block text-lg font-semibold mb-3 text-[#3D405B]">2. ¿Con qué frecuencia realizas actividad física moderada a intensa?</label>
+                        <select id="exercise-frequency" name="exercise-frequency" class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#81B29A] focus:border-transparent">
+                            <option value="rarely">Raramente o nunca</option>
+                            <option value="1-2-week">1-2 veces por semana</option>
+                            <option value="3-4-week">3-4 veces por semana</option>
+                            <option value="5-plus-week">5+ veces por semana (Recomendado)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="screen-time-before-bed" class="block text-lg font-semibold mb-3 text-[#3D405B]">3. ¿Cuánto tiempo pasas frente a pantallas (móvil, tablet, PC) antes de dormir?</label>
+                        <select id="screen-time-before-bed" name="screen-time-before-bed" class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#81B29A] focus:border-transparent">
+                            <option value="more-2h">Más de 2 horas</option>
+                            <option value="1-2h">1-2 horas</option>
+                            <option value="less-1h">Menos de 1 hora</option>
+                            <option value="none">Casi nada (Recomendado)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="study-methods" class="block text-lg font-semibold mb-3 text-[#3D405B]">4. ¿Qué métodos de estudio utilizas más frecuentemente?</label>
+                        <select id="study-methods" name="study-methods" class="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-[#81B29A] focus:border-transparent">
+                            <option value="passive">Relectura pasiva, resúmenes</option>
+                            <option value="mixed">Mezcla de pasivos y activos</option>
+                            <option value="active">Recuperación activa, repetición espaciada (Recomendado)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-[#E07A5F] text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-[#F4A261] transition duration-300 ease-in-out">
+                        Generar Recomendaciones Personalizadas
+                    </button>
+                </form>
+                <div id="recommendations-output" class="mt-12 p-6 bg-[#FDF4F2] rounded-lg border-2 border-[#E07A5F] hidden">
+                    <h3 class="text-2xl font-bold mb-4 text-[#E07A5F]">Tus Recomendaciones Personalizadas:</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-3">
+                        <!-- Recommendations will be inserted here by JavaScript -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="metodos" class="mb-40 scroll-mt-28">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">🧠 Métodos de Estudio Eficaces: Aprende a Aprender y Analizar</h2>
+            <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                La ciencia cognitiva ha demostrado que no todas las formas de estudiar son iguales. En lugar de releer pasivamente, las estrategias activas que fuerzan a tu cerebro a recuperar información son drásticamente más efectivas para la retención a largo plazo. Esta sección explora las técnicas más potentes y por qué funcionan, basándose en el concepto de "dificultades deseables", y cómo estas te ayudan a <strong>aprender a aprender, a pensar críticamente y a analizar la información de manera más profunda.</strong>
+            </p>
+            <!-- Changed to single column layout -->
+            <div class="flex flex-col gap-20 items-center">
+                <!-- Each card becomes an accordion item -->
+                <div class="card p-8 card-light-orange border-2 border-[#E07A5F] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🤔 Recuperación Activa (Active Recall)</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>En lugar de simplemente releer, ponte a prueba activamente. El esfuerzo de recordar información (efecto de prueba) fortalece las conexiones neuronales y las vías de recuperación en tu cerebro. Esto hace que la información sea más accesible en el futuro, incluso si el rendimiento inicial es más lento. Es superior a la relectura pasiva para la retención a largo plazo. Esta técnica te entrena a <strong>pensar de forma crítica</strong> y a <strong>racionalizar</strong> lo que sabes, en lugar de solo reconocerlo.</p>
+                    </div>
+                </div>
+                <div class="card p-8 card-light-green border-2 border-[#81B29A] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🗓️ Repetición Espaciada (Spaced Repetition)</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>Distribuir tus sesiones de estudio a lo largo del tiempo, en lugar de agruparlas (empollar). Este "efecto de espaciado" es universalmente beneficioso en diversas disciplinas y contextos de aprendizaje para la retención de contenido a largo plazo. A nivel neurocognitivo, el espaciado alivia la fatiga mental al regular la síntesis de neurotransmisores y la señalización de impulsos nerviosos a un ritmo constante, lo que contribuye al almacenamiento a largo plazo de las huellas de memoria. Al optimizar el cuándo repasar, estás <strong>aprender a aprender</strong> de forma más eficiente.</p>
+                    </div>
+                </div>
+                <div class="card p-8 card-light-orange border-2 border-[#E07A5F] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🧩 Práctica Intercalada (Interleaving)</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>Alterna entre diferentes temas o tipos de problemas dentro de una misma sesión de estudio, en lugar de dominar uno antes de pasar al siguiente. Aunque puede generar más errores iniciales, esta práctica mejora la capacidad de tu cerebro para discriminar entre conceptos, aplicar soluciones de forma flexible y transferir el conocimiento a nuevas situaciones, lo que resulta en un aprendizaje más profundo a largo plazo. Esto te ayuda a <strong>aprender a analizar</strong> y a <strong>racionalizar</strong> las diferencias y conexiones entre distintos conceptos.</p>
+                    </div>
+                </div>
+                <div class="card p-8 card-light-green border-2 border-[#81B29A] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>⛰️ El Concepto de "Dificultades Deseables"</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>Las estrategias que introducen una dificultad moderada durante el aprendizaje, como las mencionadas anteriormente, activan procesos cognitivos que optimizan la codificación y la recuperación de la memoria. Esta "dificultad" es una señal para el cerebro de que la información es importante, lo que lleva a una codificación más robusta y mecanismos de recuperación más resilientes, mejorando la plasticidad sináptica. Abrazar estas dificultades es parte de <strong>aprender a aprender</strong> de forma efectiva y a <strong>pensar</strong> de manera más robusta.</p>
+                    </div>
+                </div>
+
+                <div class="card p-8 card-light-yellow border-2 border-[#F4A261] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>📝 Técnicas Operativas: Esquemas y Resúmenes (Paso a Paso)</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p class="text-gray-600 leading-relaxed mb-6">Estas herramientas no son solo para organizar, sino para forzarte a procesar y <strong>analizar</strong> la información, lo que te ayuda a <strong>pensar</strong> de forma estructurada y a <strong>racionalizar</strong> los conceptos clave.</p>
+
+                        <h4 class="font-semibold text-lg mb-2 text-[#3D405B]">Cómo Crear un Esquema Efectivo:</h4>
+                        <ol class="list-decimal list-inside text-gray-700 space-y-2 mb-6">
+                            <li>**Pre-lectura y Visión General:** Antes de empezar, lee rápidamente los títulos, subtítulos, introducciones y conclusiones del material. Esto te dará una idea general de la estructura y los temas principales.</li>
+                            <li>**Identificación de Ideas Principales:** Lee cada sección o párrafo y subraya o anota las ideas clave. Piensa: "¿Cuál es el mensaje central aquí?".</li>
+                            <li>**Estructura Jerárquica:** Organiza tus ideas en una jerarquía lógica. Usa un título principal (Tema General), subtítulos (Ideas Principales), y luego puntos clave y subpuntos (Detalles de Apoyo).</li>
+                            <li>**Uso de Palabras Clave y Frases Cortas:** Evita escribir oraciones completas. Utiliza solo palabras clave, frases cortas o símbolos que te ayuden a recordar la información esencial.</li>
+                            <li>**Revisión y Simplificación:** Una vez terminado, revisa tu esquema. ¿Es claro? ¿Captura la esencia del material? Elimina cualquier información redundante y simplifica donde sea posible.</li>
+                        </ol>
+                        <h4 class="font-semibold text-lg mb-2 text-[#3D405B]">Ejemplo de Esquema:</h4>
+                        <div class="schema-container">
+                            <div class="schema-level-1">I. Tema Principal: Neurociencia del Aprendizaje</div>
+                            <div class="schema-level-2">A. Subtema 1: Plasticidad Cerebral</div>
+                            <div class="schema-level-3">1. Concepto: Capacidad del cerebro para cambiar</div>
+                            <div class="schema-level-4">a. Sinapsis: Fortalecimiento y debilitamiento</div>
+                            <div class="schema-level-4">b. Neurogénesis: Creación de nuevas neuronas</div>
+                            <div class="schema-level-3">2. Importancia en el Aprendizaje: Adaptación y retención</div>
+                            <div class="schema-level-2">B. Subtema 2: Memoria</div>
+                            <div class="schema-level-3">1. Tipos de Memoria: Corto plazo, largo plazo</div>
+                            <div class="schema-level-3">2. Consolidación: Rol del sueño</div>
+                            <div class="schema-level-4">a. NREM: Transferencia de hipocampo a corteza</div>
+                            <div class="schema-level-4">b. REM: Procesamiento emocional y procedural</div>
+                        </div>
+
+                        <h4 class="font-semibold text-lg mb-2 mt-8 text-[#3D405B]">Cómo Elaborar un Resumen Conciso:</h4>
+                        <ol class="list-decimal list-inside text-gray-700 space-y-2">
+                            <li>**Lectura Comprensiva:** Lee el texto completo al menos una vez para asegurarte de entender la idea central y el propósito del autor.</li>
+                            <li>**Identificación de Puntos Clave:** Vuelve a leer y anota las ideas más importantes, los argumentos principales y las conclusiones. Ignora los ejemplos detallados, anécdotas o información secundaria.</li>
+                            <li>**Reescritura con tus Propias Palabras:** Una vez que tengas los puntos clave, reescríbelos completamente con tus propias palabras. Evita copiar frases directas del original. Esto te obliga a <strong>racionalizar</strong> y <strong>analizar</strong> la información.</li>
+                            <li>**Concisión:** El objetivo es ser breve. Elimina cualquier detalle redundante, ejemplos específicos o repeticiones. Un buen resumen es significativamente más corto que el texto original.</li>
+                            <li>**Verificación:** Compara tu resumen con el texto original. Asegúrate de que sea preciso, que no contenga información nueva y que capture todos los puntos principales sin distorsionar el mensaje original.</li>
+                        </ol>
+                        <h4 class="font-semibold text-lg mb-2 text-[#3D405B]">Ejemplo de Resumen:</h4>
+                        <pre class="bg-gray-100 p-4 rounded-lg text-sm font-mono overflow-auto border border-gray-300 text-gray-800"><code>
+El aprendizaje efectivo se basa en la neuroplasticidad, la capacidad del cerebro para adaptarse.
+Técnicas como la recuperación activa y la repetición espaciada optimizan la consolidación de la
+memoria al obligar al cerebro a recuperar información. El sueño, especialmente las fases NREM
+y REM, es crucial para este proceso, transfiriendo recuerdos del hipocampo a la corteza para
+almacenamiento a largo plazo. La privación de sueño reduce la capacidad de aprendizaje.
+</code></pre>
+                    </div>
+                </div>
+
+                <div class="card p-8 card-light-teal border-2 border-[#2A9D8F] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🗺️ Mapas Mentales (Mind Mapping): Visualiza y Conecta</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p class="text-gray-600 leading-relaxed mb-6">Los mapas mentales son una excelente herramienta para organizar ideas de forma visual, estimular la creatividad y mejorar la memoria. Te ayudan a <strong>aprender a pensar</strong> de forma no lineal, a <strong>analizar</strong> conexiones y a <strong>racionalizar</strong> la información de manera holística.</p>
+
+                        <h4 class="font-semibold text-lg mb-2 text-[#3D405B]">Cómo Crear un Mapa Mental Efectivo:</h4>
+                        <ol class="list-decimal list-inside text-gray-700 space-y-2">
+                            <li>**Idea Central:** Comienza con la idea o tema principal en el centro de una hoja de papel (o software de mapas mentales). Usa una imagen o una palabra clave grande y clara.</li>
+                            <li>**Ramas Principales:** Desde la idea central, dibuja ramas gruesas para las ideas principales o categorías. Usa una palabra clave por rama y un color diferente para cada una. Estas ramas representan los capítulos o secciones más importantes.</li>
+                            <li>**Ramas Secundarias:** Desde cada rama principal, dibuja ramas más delgadas para las ideas secundarias o subtemas. Conecta las ideas relacionadas con líneas.</li>
+                            <li>**Palabras Clave e Imágenes:** Utiliza solo palabras clave (una por línea es ideal) y añade imágenes o símbolos siempre que sea posible. Esto estimula la memoria visual y la recuperación activa.</li>
+                            <li>**Colores y Conexiones:** Usa colores para agrupar ideas o para resaltar la importancia. Dibuja flechas o líneas para mostrar conexiones entre ideas de diferentes ramas.</li>
+                            <li>**Revisión y Expansión:** Revisa tu mapa mental. ¿Es fácil de entender? ¿Representa fielmente la información? Puedes expandirlo añadiendo más detalles o nuevas ramas a medida que tu conocimiento crece.</li>
+                        </ol>
+                        <h4 class="font-semibold text-lg mb-2 text-[#3D405B]">Ejemplo de Mapa Mental:</h4>
+                        <pre class="mindmap-example-text">
+                                          <span class="mm-branch">/--- MÉTODOS          ⟶</span> <span class="mm-sub-branch">Recuperación Activa</span>
+                                         <span class="mm-connector">|</span>                     <span class="mm-sub-branch">Repetición Espaciada</span>
+                                         <span class="mm-connector">|</span>                     <span class="mm-sub-branch">Intercalado</span>
+                                         <span class="mm-connector">|</span>
+                          <span class="mm-branch">NEUROCIENCIA      ⟶</span> <span class="mm-sub-branch">Plasticidad</span>
+                                         <span class="mm-connector">|</span>                     <span class="mm-sub-branch">Memoria</span>
+                                         <span class="mm-connector">|</span>
+<span class="mm-center">APRENDIZAJE ÓPTIMO ⟶</span> <span class="mm-branch">BIENESTAR         ⟶</span> <span class="mm-sub-branch">Sueño</span>
+                                         <span class="mm-connector">|</span>                     <span class="mm-sub-branch">Nutrición</span>
+                                         <span class="mm-connector">|</span>                     <span class="mm-sub-branch">Ejercicio</span>
+                                         <span class="mm-connector">|</span>
+                       <span class="mm-branch">\--- HABILIDADES      ⟶</span> <span class="mm-sub-branch">Pensar Críticamente</span>
+                                                               <span class="mm-sub-branch">Racionalizar</span>
+                                                               <span class="mm-sub-branch">Analizar</span>
+                        </pre>
+                        <p class="text-gray-600 leading-relaxed mt-6">La estructura radial de los mapas mentales imita la forma en que el cerebro almacena y recupera información, facilitando la asociación y la comprensión profunda. Al construir un mapa, estás activamente <strong>analizando</strong> y <strong>racionalizando</strong> las relaciones entre conceptos, lo que refuerza tu capacidad de <strong>aprender a aprender</strong> de forma más intuitiva.</p>
+                    </div>
+                </div>
+                <div class="card p-8 card-light-orange border-2 border-[#E07A5F] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🧠 Neuroplasticidad en Profundidad: La Base del Aprendizaje</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>La neuroplasticidad es la capacidad intrínseca del cerebro para reorganizarse y formar nuevas conexiones neuronales a lo largo de la vida en respuesta a la experiencia, el aprendizaje y el daño. Este proceso es fundamental para la adquisición de nuevas habilidades y la adaptación a nuevos entornos. Se manifiesta a través de:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                            <li>**Potenciación a Largo Plazo (LTP):** Un aumento duradero en la fuerza de la conexión sináptica entre dos neuronas que se activan repetidamente de forma conjunta. Se considera el mecanismo celular básico del aprendizaje y la memoria.</li>
+                            <li>**Poda Sináptica:** El proceso de eliminación de sinapsis neuronales que no se utilizan o son ineficientes. Es crucial para refinar las redes neuronales y optimizar la eficiencia del procesamiento cerebral, permitiendo un aprendizaje más especializado.</li>
+                            <li>**Neurogénesis:** La formación de nuevas neuronas a partir de células madre neurales, principalmente en el hipocampo adulto. El ejercicio y el aprendizaje activo pueden estimular este proceso, contribuyendo a la memoria y la cognición.</li>
+                        </ul>
+                        <p class="mt-4">Entender la neuroplasticidad nos permite diseñar estrategias de aprendizaje que aprovechen la capacidad natural del cerebro para cambiar y adaptarse, optimizando la retención y la formación de habilidades. Al aplicar técnicas como la recuperación activa y la repetición espaciada, estamos activamente moldeando nuestro cerebro.</p>
+                    </div>
+                </div>
+                <div class="card p-8 card-light-green border-2 border-[#81B29A] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🧐 Sesgos Cognitivos y Pensamiento Crítico</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>Los sesgos cognitivos son atajos mentales que nuestro cerebro utiliza para procesar información de manera más rápida y eficiente, pero que a menudo nos llevan a errores sistemáticos en el pensamiento y la toma de decisiones. Reconocerlos es el primer paso para desarrollar un pensamiento más crítico y un análisis más objetivo.</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                            <li>**Sesgo de Confirmación:** La tendencia a buscar, interpretar y recordar información que confirma nuestras creencias preexistentes, ignorando la evidencia que las contradice.</li>
+                            <li>**Efecto Dunning-Kruger:** Un sesgo cognitivo en el que individuos con poca habilidad en una tarea sobreestiman su propia capacidad, mientras que aquellos con alta habilidad tienden a subestimarla.</li>
+                            <li>**Sesgo de Anclaje:** La tendencia a depender demasiado de la primera pieza de información ofrecida (el "ancla") al tomar decisiones.</li>
+                        </ul>
+                        <p class="mt-4">Para mitigar estos sesgos y fortalecer el pensamiento crítico, es crucial:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                            <li>**Buscar Perspectivas Diversas:** Exponerte a diferentes puntos de vista y fuentes de información.</li>
+                            <li>**Cuestionar Suposiciones:** No aceptar la información al pie de la letra; pregúntate por qué y cómo.</li>
+                            <li>**Practicar la Autorreflexión:** Evaluar tus propios procesos de pensamiento y decisiones.</li>
+                        </ul>
+                        <p class="mt-4">Desarrollar la capacidad de <strong>pensar críticamente</strong> y <strong>analizar</strong> la información de forma objetiva es una habilidad fundamental para el aprendizaje profundo y la toma de decisiones informadas.</p>
+                    </div>
+                </div>
+                <div class="card p-8 card-light-yellow border-2 border-[#F4A261] accordion-item" data-section="metodos">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                        <h3>🧠 Metacognición y Autorregulación del Aprendizaje</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                        <p>La metacognición es, en esencia, "pensar sobre el propio pensamiento". Implica la capacidad de monitorear, evaluar y regular el propio proceso de aprendizaje. Es una habilidad crucial para <strong>aprender a aprender</strong> de manera efectiva, ya que te permite ser un aprendiz más estratégico y autónomo.</p>
+                        <p class="mt-4">Componentes clave de la metacognición:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                            <li>**Conocimiento Metacognitivo:** Lo que sabes sobre tu propio aprendizaje (ej. tus fortalezas y debilidades, qué estrategias funcionan mejor para ti).</li>
+                            <li>**Regulación Metacognitiva:** Las acciones que tomas para controlar tu aprendizaje (ej. planificar, monitorear tu comprensión, evaluar tu progreso).</li>
+                        </ul>
+                        <p class="mt-4">Estrategias para desarrollar la metacognición:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                            <li>**Planificación:** Antes de estudiar, pregúntate: "¿Cuál es el objetivo de esta sesión? ¿Qué estrategias usaré? ¿Cuánto tiempo le dedicaré?".</li>
+                            <li>**Monitoreo:** Durante el estudio, haz pausas para preguntarte: "¿Estoy entendiendo esto? ¿Necesito cambiar de estrategia? ¿Estoy progresando?".</li>
+                            <li>**Evaluación:** Después de estudiar, reflexiona: "¿Qué tan bien aprendí? ¿Qué funcionó y qué no? ¿Qué haré diferente la próxima vez?".</li>
+                        </ul>
+                        <p class="mt-4">La autorregulación del aprendizaje es la aplicación práctica de la metacognición, permitiéndote adaptar tus estrategias y recursos para alcanzar tus metas académicas. Es un ciclo continuo de auto-observación, auto-juicio y auto-reacción.</p>
+                    </div>
+                </div>
+                <div class="chart-container w-full max-w-3xl mx-auto border-2 border-[#3D405B]"> <!-- Added border-2 and border color -->
+                    <canvas id="studyMethodsChart"></canvas>
+                    <div class="text-center text-gray-700 mt-12 text-base leading-relaxed">
+                        Este gráfico compara la efectividad de diferentes métodos de estudio en la retención de información a largo plazo. Demuestra que las técnicas de "dificultades deseables" como la Recuperación Activa y la Repetición Espaciada son significativamente más eficaces que métodos pasivos como la Relectura.
+                    </div>
+                </div>
+            </div>
+            <p class="text-lg text-center text-gray-700 max-w-4xl mx-auto mt-40 leading-relaxed"> <!-- Changed mt-32 to mt-40 -->
+                Existe una desconexión notable: a pesar de la evidencia, muchos educadores y estudiantes no aplican estas estrategias óptimas. Esto subraya la necesidad de una mayor difusión y capacitación para cerrar la brecha entre la investigación neurocognitiva y la práctica diaria, evitando hábitos ineficientes y una menor retención a largo plazo. Al aplicar estas técnicas, no solo memorizas, sino que realmente estás <strong>aprender a aprender</strong> de manera más inteligente y a <strong>pensar</strong> de forma más estructurada.
+            </p>
+        </section>
+
+        <section id="concentracion" class="mb-40 scroll-mt-28">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">🎯 Mejorar la Concentración: Aprende a Pensar y a Racionalizar</h2>
+             <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">La atención no es una capacidad fija, sino una habilidad que puede ser cultivada y mejorada a través de la práctica deliberada y la optimización del entorno. Se describe como un "telescopio" que selecciona y magnifica estímulos. La práctica repetida puede entrenar las redes atencionales del cerebro (alerta, orientación, control ejecutivo), transformando la concentración de un rasgo personal a una función dinámica y entrenable. Dominar tu foco es esencial para <strong>aprender a pensar</strong> con claridad y a <strong>racionalizar</strong> la información sin distracciones.</p>
+            <!-- Changed to single column layout -->
+            <div class="flex flex-col gap-20 items-center">
+                <div class="card p-12 bg-[#FFFBF7] border-2 border-[#E07A5F] shadow-lg accordion-item w-full">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#E07A5F] font-bold text-2xl">
+                        <h3>🍅 La Técnica Pomodoro: Estructura y Neurocognición</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <div class="flex flex-col items-center space-y-10">
+                            <div class="text-center p-6 rounded-xl bg-[#81B29A] text-white w-full max-w-xs shadow-md">
+                                <p class="font-bold text-2xl">25 MIN</p>
+                                <p class="text-base">Trabajo Enfocado</p>
+                            </div>
+                            <div class="text-4xl font-bold text-[#3D405B]">➡️</div>
+                            <div class="text-center p-6 rounded-xl bg-[#F4A261] text-white w-full max-w-xs shadow-md">
+                                <p class="font-bold text-2xl">5 MIN</p>
+                                <p class="text-base">Descanso Corto</p>
+                            </div>
+                        </div>
+                        <p class="text-center mt-12 text-gray-700 leading-relaxed text-lg">
+                            Repite el ciclo 4 veces y luego toma un descanso largo de 15-30 minutos. Esta técnica alivia la "carga secundaria" del esfuerzo metacognitivo (decidir cuándo descansar), permitiendo que la corteza prefrontal se dedique plenamente a la tarea de aprendizaje. Esto mejora la concentración, reduce la fatiga y la distracción, y conduce a conexiones neuronales más fuertes y un aprendizaje más significativo. Al estructurar tu tiempo, estás <strong>aprender a racionalizar</strong> tu energía mental.</p>
+                    </div>
+                </div>
+                 <div id="accordion-concentracion" class="space-y-20 w-full">
+                    <div class="accordion-item card p-10 card-light-yellow border-2 border-[#F4A261]">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                            <h4>🍃 Gestión del Entorno y Fisiología</h4>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                            <p>Crear un espacio de estudio dedicado, ordenado y libre de distracciones visuales o auditivas es crucial. Las condiciones ambientales extremas (calor, hipoxia, frío) pueden afectar significativamente la función cognitiva y la atención al alterar neurotransmisores clave (serotonina, dopamina, norepinefrina) y causar malestar. Un entorno óptimo asegura las condiciones neurofisiológicas necesarias para una función cognitiva de alto nivel, reduciendo la carga cognitiva y mejorando la capacidad atencional. Gestionar tu entorno es parte de <strong>aprender a pensar</strong> de forma estratégica sobre tu productividad.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item card p-10 card-light-teal border-2 border-[#2A9D8F]">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                            <h4>📵 Desintoxicación Digital y Redes Atencionales</h4>
+                             <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                            <p>Desactivar las notificaciones, cerrar pestañas innecesarias y evitar el uso de redes sociales durante las sesiones de estudio es fundamental. Cada interrupción fragmenta la atención y rompe el flujo de concentración. La multitarea digital sobrecarga la memoria de trabajo y afecta la capacidad de cambiar entre tareas, ya que las redes atencionales del cerebro luchan por gestionar múltiples estímulos simultáneos. Minimizar estas distracciones permite que tu cerebro mantenga un enfoque sostenido. Practicar la desintoxicación digital te ayuda a <strong>aprender a racionalizar</strong> el uso de la tecnología para tu beneficio.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sueno" class="mb-40 scroll-mt-28">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">😴 Descanso y Sueño: El Arquitecto de la Memoria</h2>
+            <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                El sueño es un estado activo y dinámico, fundamental para la salud cerebral y el aprendizaje. Su papel va mucho más allá del simple descanso físico, siendo un proceso neurofisiológico complejo que orquesta la consolidación de la memoria y la restauración cognitiva. Incluye la importancia de conocer tu <strong>cronotipo</strong> para optimizar tus horarios de sueño y estudio, lo cual es clave para <strong>aprender a aprender</strong> de acuerdo a tu biología.
+            </p>
+            <!-- Changed to single column layout -->
+            <div class="flex flex-col gap-32 items-center"> <!-- Changed gap-16 to gap-32 here -->
+                 <div class="chart-container w-full max-w-3xl mx-auto border-2 border-[#81B29A]"> <!-- Added border-2 and border color -->
+                    <canvas id="sleepChart"></canvas>
+                    <div class="text-center text-gray-700 mt-12 text-base leading-relaxed"> <!-- Removed mb-48 -->
+                        Este gráfico ilustra las etapas del sueño y cómo se distribuyen a lo largo de un ciclo típico de 90 minutos. El sueño profundo (NREM) y el sueño REM son cruciales para la consolidación de la memoria y el procesamiento emocional.
+                    </div>
+                </div>
+                <div class="card p-8 card-light-orange border-2 border-[#E07A5F] accordion-item w-full">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                        <h3>🧠 El Papel del Sueño en la Consolidación de la Memoria</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <ul class="space-y-4 text-gray-700 text-lg">
+                            <li class="flex items-start"><span class="text-[#81B29A] text-2xl mr-3 mt-0.5">✓</span><span>Consolidación Activa: Durante el sueño NREM (ondas lentas) y REM, el cerebro consolida activamente los recuerdos. En NREM, se cree que el hipocampo "reproduce" selectivamente los recuerdos del día, transfiriéndolos a la corteza cerebral para almacenamiento a largo plazo.</span></li>
+                            <li class="flex items-start"><span class="text-[#81B29A] text-2xl mr-3 mt-0.5">✓</span><span>Neuroplasticidad y Homeostasis Sináptica: El sueño permite mecanismos de plasticidad que reactivan y estabilizan las huellas de memoria. La Teoría de la Homeostasis Sináptica sugiere que el sueño reduce la fuerza sináptica acumulada durante la vigilia, esencial para un aprendizaje eficiente. Es el "precio que pagamos por la plasticidad".</span></li>
+                            <li class="flex items-start"><span class="text-[#81B29A] text-2xl mr-3 mt-0.5">✓</span><span>Impacto de la Privación del Sueño: La falta de sueño puede reducir las capacidades de aprendizaje hasta en un 40%, dificultando la concentración, la toma de decisiones y el control emocional. El cerebro carece de tiempo para crear nuevas vías para la información recién aprendida, impidiendo la consolidación de la memoria.</span></li>
+                            <li class="flex items-start"><span class="text-[#81B29A] text-2xl mr-3 mt-0.5">✓</span><span>Higiene del Sueño: Mantener un horario regular, crear un ambiente oscuro, silencioso y fresco, y evitar pantallas (luz azul suprime la melatonina) y estimulantes antes de acostarse son fundamentales. Un sueño de calidad se correlaciona consistentemente con un mayor rendimiento académico y mejores habilidades cognitivas.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Changed parent grid to a simple div to stack sections -->
+        <div class="flex flex-col gap-24 mb-40">
+            <section id="nutricion" class="scroll-mt-28">
+                <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">🍎 Nutrición para el Cerebro: Combustible Óptimo</h2>
+                <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                    Tu cerebro, aunque solo representa el 2% del peso corporal, consume aproximadamente el 20% de la energía metabólica. La dieta no solo proporciona energía, sino que influye directamente en la función cerebral, el metabolismo energético y el rendimiento académico al aportar nutrientes esenciales para la salud neuronal y la optimización cognitiva. Una nutrición adecuada te permite <strong>aprender a pensar</strong> con mayor claridad y <strong>racionalizar</strong> mejor la información.
+                </p>
+                <div class="card p-8 card-light-green border-2 border-[#81B29A] accordion-item">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                        <h3>Nutrientes clave y sus efectos neurofisiológicos</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <ul class="space-y-4 text-gray-700 text-lg">
+                            <li><span class="text-[#E07A5F]">Omega-3 (DHA/EPA):</span> Cruciales para la estructura y función de las membranas neuronales. Un mayor consumo se asocia con un aumento de la materia blanca y un mejor rendimiento cognitivo (memoria, pensamiento flexible). Dosis óptimas (~2g/día de Omega-3, ~1g de DHA) pueden llevar a mejoras cognitivas significativas y aumento del volumen de materia gris.</li>
+                            <li><span class="text-[#E07A5F]">Aminoácidos (Triptófano y Tirosina):</span> Precursores de neurotransmisores vitales. El Triptófano es clave para la serotonina y melatonina (ánimo, sueño). La Tirosina previene disminuciones cognitivas bajo estrés (frío, hipoxia) al aumentar dopamina y norepinefrina, mejorando la atención.</li>
+                            <li><span class="text-[#E07A5F]">Cafeína:</span> Bloquea receptores de adenosina, aumentando el estado de alerta, tiempos de reacción y memoria. Beneficiosa para la vigilancia, especialmente en privación de sueño.</li>
+                            <li><span class="text-[#E07A5F]">Carbohidratos Complejos:</span> Proporcionan glucosa, la fuente de energía principal del cerebro, de manera constante, evitando picos y caídas que afectan la concentración.</li>
+                            <li><span class="text-[#E07A5F]">Vitaminas B (B6, Folato, B12):</span> Esenciales para la metilación, reducen el riesgo de atrofia cerebral y deterioro cognitivo.</li>
+                            <li><span class="text-[#E07A5F]">Fosfolípidos:</span> Componentes de membranas neuronales y materia prima para neurotransmisores como la acetilcolina (memoria).</li>
+                            <li><span class="text-[#E07A5F]">Vitamina D y Antioxidantes:</span> Neuroprotectores, antiinflamatorios y mejoran el estado de ánimo y la vitalidad mental.</li>
+                            <li><span class="text-[#E07A5F]">MCTs (Triglicéridos de Cadena Media):</span> Proporcionan cetonas, una fuente de combustible alternativa y eficiente para el cerebro, mejorando la memoria y la función ejecutiva.</li>
+                        </ul>
+                        <p class="text-lg text-center text-gray-700 mt-12 leading-relaxed">
+                            Es crucial diferenciar entre los efectos agudos (ej. cafeína para un impulso inmediato) y crónicos (ej. Omega-3 para salud cerebral a largo plazo). La optimización nutricional es una estrategia fundamental para la salud cerebral y el rendimiento cognitivo sostenido, con efectos sinérgicos en el sueño y la resiliencia al estrés.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section id="ejercicio" class="scroll-mt-28">
+                <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">🏃‍♂️ Actividad Física: Esculpiendo el Cerebro para un Aprendizaje Mejorado</h2>
+                <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                   El ejercicio regular es un poderoso modulador de la salud cerebral y la función cognitiva, con efectos profundos a nivel neurobiológico que optimizan la capacidad de aprendizaje. Va más allá de la salud física, siendo una actividad de "construcción" y "optimización" cerebral que maximiza el potencial general. El ejercicio te ayuda a <strong>aprender a pensar</strong> con mayor claridad y a <strong>racionalizar</strong> mejor tus decisiones.
+                </p>
+                <div class="card p-8 card-light-yellow border-2 border-[#F4A261] accordion-item">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                        <h3>Beneficios neurofisiológicos clave</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <ul class="space-y-4 text-gray-700 text-lg">
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">✓</span><span>Neurogénesis y Plasticidad Cerebral: El ejercicio aeróbico estimula la creación de nuevas neuronas (neurogénesis) en el hipocampo, crucial para la memoria. Aumenta el Factor Neurotrófico Derivado del Cerebro (BDNF), que nutre neuronas y fomenta el crecimiento y desarrollo de nuevas neuronas y sinapsis. Esto mejora la capacidad del cerebro para adaptarse, reorganizarse y formar nuevas sinapsis, vital para el aprendizaje.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">✓</span><span>Aumento de Materia Gris y Blanca: El ejercicio constante conduce a aumentos significativos en el volumen de materia gris (corteza prefrontal, hipocampo) y mejora la integridad de la materia blanca, indicando un mejor "cableado" neuronal y una mayor interconectividad funcional entre regiones cerebrales.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">✓</span><span>Regulación de Neurotransmisores y Estado de Ánimo: Aumenta los niveles de serotonina, dopamina y norepinefrina (esenciales para el estado de ánimo, alerta y enfoque). También reduce el estrés al aumentar la norepinefrina y endorfinas, y disminuye el cortisol.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">✓</span><span>Mejora de Funciones Ejecutivas: El ejercicio regular mejora la atención, la memoria de trabajo, el control inhibitorio, la flexibilidad cognitiva y la velocidad de procesamiento de la información. La corteza prefrontal, responsable de estas funciones, se beneficia del aumento del flujo sanguíneo.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">✓</span><span>Ciclo de Retroalimentación Positivo: Las mejoras en el control atencional y el control inhibitorio (funciones ejecutivas) aumentan la tendencia a hacer ejercicio, creando un ciclo virtuoso.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">✓</span><span>Calidad del Sueño y Rendimiento Académico: Mejora la calidad del sueño, lo que a su vez apoya la consolidación de la memoria y la eliminación de toxinas cerebrales. Los efectos positivos del ejercicio sobre la cognición influyen directamente en el rendimiento académico.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Changed parent grid to a simple div to stack sections -->
+        <div class="flex flex-col gap-24 mb-40">
+             <section id="tecnologia" class="scroll-mt-28">
+                <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">📱 Gestión de la Tecnología: La Espada de Doble Filo</h2>
+                <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                   El uso de medios digitales ha transformado el aprendizaje y la comunicación, pero su impacto en la función cognitiva, el bienestar y el rendimiento académico es complejo y multifacético, presentando tanto beneficios como desafíos. Gestionar la tecnología de forma inteligente es crucial para <strong>aprender a pensar</strong> con claridad y a <strong>racionalizar</strong> tus decisiones sobre su uso.
+                </p>
+                <div class="card p-8 card-light-teal border-2 border-[#2A9D8F] accordion-item">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                        <h3>Problemas, Impacto y Soluciones de la Tecnología</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b-2 border-gray-200">
+                                        <th class="p-4 text-lg font-semibold text-[#3D405B]">Problema</th>
+                                        <th class="p-4 text-lg font-semibold text-[#3D405B]">Impacto Negativo y Fundamento</th>
+                                        <th class="p-4 text-lg font-semibold text-[#3D405B]">Solución Consciente</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="p-4 font-medium text-gray-700">Notificaciones y Multitarea</td>
+                                        <td class="p-4 text-gray-600 leading-relaxed">Fragmentación de la atención, reducción del foco profundo y sobrecarga de la memoria de trabajo. La multitarea digital reduce la eficiencia y la profundidad del procesamiento de la información, ya que el cerebro no está diseñado para procesar múltiples flujos de medios simultáneamente de forma efectiva.</td>
+                                        <td class="p-4 text-gray-600 leading-relaxed">Desactivar todas las notificaciones no esenciales. Enfocarse en una sola tarea (monotasking). Cerrar pestañas y aplicaciones irrelevantes durante el estudio.</td>
+                                    </tr>
+                                    <tr class="border-b border-gray-100">
+                                        <td class="p-4 font-medium text-gray-700">Luz Azul de Pantallas</td>
+                                        <td class="p-4 text-gray-600 leading-relaxed">Supresión de la producción de melatonina (hormona del sueño), lo que altera el ritmo circadiano y conduce a una menor duración y calidad del sueño. La mala calidad del sueño se asocia con función cognitiva reducida y atención más corta.</td>
+                                        <td class="p-4 text-gray-600 leading-relaxed">Usar filtros de luz azul en dispositivos. Evitar el uso de pantallas (teléfonos, tabletas, TV, ordenador) al menos 1-2 horas antes de acostarse.</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-4 font-medium text-gray-700">Uso Problemático y Salud Mental</td>
+                                        <td class="p-4 text-gray-600 leading-relaxed">Asociado con "miedo a perderse algo" (FoMO), ansiedad, estrés psicológico, y síntomas depresivos/TDAH. El uso excesivo de redes sociales puede ser más perjudicial, especialmente para jóvenes vulnerables a la comparación social. Involucra vías de dopamina y recompensa, lo que puede llevar a comportamientos similares a la dependencia.</td>
+                                        <td class="p-4 text-gray-600 leading-relaxed">Uso consciente y moderado. Establecer límites de tiempo para redes sociales y entretenimiento digital. Buscar conexiones sociales reales. Desarrollar autoconciencia sobre los patrones de uso y las necesidades psicológicas subyacentes.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="text-lg text-center text-gray-700 mt-12 leading-relaxed">
+                            Es crucial entender que la condena general del "tiempo frente a la pantalla" es una simplificación. El tipo de uso (pasivo vs. activo/educativo), la carga cognitiva, las demandas atencionales y el compromiso emocional son los determinantes críticos de su impacto. Las intervenciones deben centrarse en gestionar los factores de riesgo identificados en lugar de demonizar la tecnología en sí.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <section id="habitos" class="scroll-mt-28">
+                <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">🔄 Creación de Hábitos: La Neurobiología del Cambio</h2>
+                 <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                    Los hábitos son comportamientos automáticos que el cerebro crea para ahorrar energía. Cerca del 45% de nuestras acciones diarias son hábitos, a menudo realizados sin pensamiento consciente. Entender su mecanismo neurobiológico es fundamental para construir rutinas de estudio duraderas y sostenibles. La creación de hábitos te ayuda a <strong>aprender a aprender</strong> de forma consistente y a <strong>racionalizar</strong> tus acciones diarias.
+                </p>
+                <div class="flex flex-col space-y-12 w-full"> <!-- Added space-y-12 here -->
+                    <div class="card p-10 text-center bg-[#FFFBF7] border-2 border-[#81B29A] shadow-lg accordion-item">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#81B29A] font-bold text-2xl">
+                            <h3>🔁 El Bucle del Hábito y la Dopamina</h3>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4">
+                            <div class="flex flex-col md:flex-row justify-around items-center space-y-6 md:space-y-0 md:space-x-6 text-base">
+                                <div class="p-5 bg-[#E07A5F] text-white rounded-lg shadow-md flex-1 min-w-[120px] font-semibold">1. Señal<br>(Ej: Hora del día)</div>
+                                <span class="text-4xl font-bold text-[#3D405B]">➡️</span>
+                                <div class="p-5 bg-[#F4A261] text-white rounded-lg shadow-md flex-1 min-w-[120px] font-semibold">2. Rutina<br>(Ej: Estudiar 25 min)</div>
+                                <span class="text-4xl font-bold text-[#3D405B]">➡️</span>
+                                <div class="p-5 bg-[#2A9D8F] text-white rounded-lg shadow-md flex-1 min-w-[120px] font-semibold">3. Recompensa<br>(Ej: Satisfacción)</div>
+                            </div>
+                            <p class="text-center mt-12 text-gray-700 leading-relaxed text-lg">
+                                Los hábitos se forman a través de este bucle. La Señal (un disparador) activa el cerebro (ganglios basales, liberación de glutamato). La Rutina (la acción) fortalece las vías neuronales a través de la potenciación a largo plazo (LTP). La Recompensa (un aumento de dopamina en el núcleo accumbens) refuerza el bucle del hábito, haciendo que el comportamiento sea más automático.
+                            </p>
+                            <p class="text-gray-700 mt-6 leading-relaxed text-lg">
+                                El cerebro utiliza dos sistemas de dopamina para el aprendizaje de hábitos: el Error de Predicción de Recompensa (RPE) para el aprendizaje inicial, y el Error de Predicción de Acción (APE), que toma el control con la repetición, consolidando asociaciones estables y liberando recursos cognitivos. El daño en el estriado, donde se codifica el APE, impide la formación de hábitos. Para romper un mal hábito, es más efectivo reemplazarlo consistentemente con uno nuevo, permitiendo que el sistema APE forme una nueva rutina sobre la antigua.
+                            </p>
+                            <p class="text-lg text-center text-gray-700 mt-6 leading-relaxed">
+                                La neuroplasticidad (la capacidad del cerebro para reorganizarse) es fundamental. La práctica constante fortalece las conexiones neuronales débiles, haciendo que los comportamientos sean más automáticos y arraigados, involucrando cambios complejos en la actividad neuronal en múltiples regiones cerebrales como el estriado dorsolateral y la corteza infralímbica.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card p-8 card-light-yellow border-2 border-[#F4A261] accordion-item">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                            <h3>✨ El Rol de la Curiosidad y la Motivación Intrínseca</h3>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                            <p>La curiosidad no es solo un rasgo de personalidad, sino un estado cognitivo que activa los sistemas de recompensa del cerebro, particularmente la vía mesolímbica dopaminérgica. Cuando la curiosidad se despierta, el cerebro libera dopamina, lo que no solo nos impulsa a buscar conocimiento, sino que también mejora la memoria para la información aprendida.</p>
+                            <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                                <li>**Dopamina y Aprendizaje:** La dopamina facilita la plasticidad sináptica y la consolidación de la memoria. Un aumento en la dopamina durante un estado de curiosidad puede hacer que la información sea más memorable, incluso si no está directamente relacionada con lo que nos generó curiosidad inicialmente.</li>
+                                <li>**Motivación Intrínseca:** Surge del interés y el disfrute inherente de la actividad en sí, en contraste con la motivación extrínseca (recompensas externas). Fomentar la motivación intrínseca (ej. conectando el material con tus intereses, permitiendo autonomía en el estudio) lleva a un aprendizaje más profundo y sostenido.</li>
+                            </ul>
+                            <p class="mt-4">Cultivar la curiosidad y la motivación intrínseca es clave para un aprendizaje autodirigido y duradero. Esto te ayuda a <strong>aprender a aprender</strong> de forma más placentera y efectiva, y a <strong>racionalizar</strong> la importancia de lo que estudias.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section id="meditacion" class="mb-40 scroll-mt-28">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">🧘‍♀️ Meditación y Relajación: Cultivando la Mente para Pensar y Analizar</h2>
+             <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-24 leading-relaxed">
+                Las prácticas de meditación y relajación, especialmente el mindfulness, ofrecen beneficios significativos para la concentración, la regulación emocional y la función cognitiva, con fundamentos neurofisiológicos claros. Entrenan tu cerebro para mejorar la atención y la regulación emocional, creando un estado mental óptimo para el aprendizaje. También abordaremos otras técnicas de <strong>manejo del estrés</strong> para complementar tu bienestar, lo cual te ayuda a <strong>aprender a pensar</strong> con mayor claridad y a <strong>analizar</strong> tus emociones.
+            </p>
+            <!-- Changed to single column layout -->
+            <div class="flex flex-col gap-20 items-center">
+                <div class="card p-8 card-light-orange border-2 border-[#E07A5F] accordion-item w-full">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                        <h3>🧘‍♀️ Fundamento Fisiológico y Neurofisiológico</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <ul class="space-y-4 text-gray-700 text-lg">
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">●</span><span>Cambios Estructurales (Neuroplasticidad): La práctica constante de mindfulness aumenta el grosor cortical en la corteza prefrontal (funciones ejecutivas, toma de decisiones) y la corteza cingulada anterior (atención, autorregulación). La amígdala (centro del miedo y estrés) muestra una reducción en tamaño y reactividad con la práctica del mindfulness.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">●</span><span>Equilibrio Neuroquímico: La meditación aumenta los niveles de GABA (neurotransmisor que calma la actividad neuronal), serotonina (regulación del estado de ánimo) y BDNF (crecimiento neuronal, plasticidad sináptica). Además, reduce los niveles de cortisol, la principal hormona del estrés.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">●</span><span>Mejora de la Atención y Regulación Emocional: El mindfulness entrena el cerebro para mantener la atención en el momento presente, mejorando el enfoque sostenido y reduciendo la divagación mental. Fortalece las áreas cerebrales de control emocional y mejora la conectividad entre la corteza prefrontal y la red de modo por defecto (DMN).</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">●</span><span>Técnicas Simples: La Respiración Consciente (2 min) activa el sistema nervioso parasimpático, promoviendo la calma. El Escaneo Corporal (5 min) ayuda a identificar y liberar tensión.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">●</span><span>Otras Técnicas de Manejo del Estrés: Además de la meditación, considera técnicas como el *journaling* (escritura reflexiva), pasar tiempo en la naturaleza, y mantener conexiones sociales fuertes. Estas actividades también promueven la liberación de oxitocina y reducen el cortisol, contribuyendo a un estado mental más relajado y receptivo al aprendizaje.</span></li>
+                            <li class="flex items-start"><span class="text-[#E07A5F] text-2xl mr-3 mt-0.5">●</span><span><strong>Impacto del Estrés Crónico en la Cognición:</strong> El estrés crónico puede tener efectos deletéreos en el cerebro, particularmente en el hipocampo (memoria) y la corteza prefrontal (funciones ejecutivas). La exposición prolongada a hormonas del estrés como el cortisol puede reducir el volumen del hipocampo, inhibir la neurogénesis y afectar la plasticidad sináptica, lo que se traduce en dificultades de memoria, atención y toma de decisiones. Las prácticas de relajación y mindfulness ayudan a amortiguar esta respuesta al estrés, protegiendo la salud cognitiva.</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container w-full max-w-3xl mx-auto border-2 border-[#E07A5F]"> <!-- Added border-2 and border color -->
+                    <canvas id="meditationChart"></canvas>
+                    <div class="text-center text-gray-700 mt-16 text-base leading-relaxed">
+                        Este gráfico ilustra cómo la meditación mindfulness puede influir en la actividad de áreas clave del cerebro relacionadas con el estrés (Amígdala) y el foco (Corteza Prefrontal), mostrando un cambio hacia una mayor calma y concentración.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="rutina" class="bg-white rounded-3xl p-10 md:p-20 shadow-xl scroll-mt-28">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">Propuesta de Rutina Integral: Un Modelo Multidimensional Adaptado a tu Horario</h2>
+            <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-20 leading-relaxed">
+                Esta es una rutina modelo que integra todos los pilares, reconociendo que el aprendizaje es un proceso holístico. Ha sido adaptada a tu horario específico (trabajo de 08:00 a 17:00, entrenamiento de 18:00 a 19:30). La clave es la consistencia y la integración de hábitos saludables en tu día a día para maximizar tu potencial de aprendizaje y bienestar.
+            </p>
+            <div class="space-y-24">
+                <div class="bg-[#FDFCFB] rounded-xl p-8 shadow-md border border-gray-100 accordion-item">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#81B29A] font-bold text-3xl">
+                        <h3>🌤️ Mañana (06:00 - 08:00): Preparación y Activación</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <div class="space-y-8">
+                            <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#81B29A] card-light-green">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">💧 Hidratación y Luz Solar (06:00 - 06:15)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Bebe un vaso de agua al despertar. Expónte a la luz natural poco después de levantarte. <br>Fundamento: La luz matutina ayuda a sincronizar tu ritmo circadiano, regulando la producción de melatonina y cortisol, lo que mejora el estado de alerta y prepara tu cerebro para el día.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#E07A5F] card-light-orange">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">🧘 Ejercicio Ligero o Meditación (06:15 - 06:45)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Realiza 15-20 min de actividad física suave (estiramientos, yoga ligero) o 10 min de meditación. <br>Fundamento: El ejercicio matutino aumenta los niveles de BDNF (neurogénesis y plasticidad), dopamina y norepinefrina, mejorando la atención y el estado de ánimo. La meditación reduce el cortisol y mejora el enfoque, preparando tu mente para la jornada laboral.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#81B29A] card-light-green">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">🍳 Desayuno Nutritivo y Preparación para el Trabajo (06:45 - 08:00)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Incluye omega-3 (semillas de chía, nueces), proteínas (huevos, yogur) y carbohidratos complejos (avena, frutas). <br>Fundamento: Nutrientes como los omega-3 son cruciales para la estructura neuronal. La glucosa de carbohidratos complejos asegura energía cerebral estable, y las proteínas aportan aminoácidos esenciales como la tirosina para la síntesis de neurotransmisores que apoyan la concentración y el estado de ánimo durante el trabajo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#FDFCFB] rounded-xl p-8 shadow-md border border-gray-100 accordion-item">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#F4A261] font-bold text-3xl">
+                        <h3>☀️ Tarde (17:00 - 21:00): Transición, Entrenamiento y Primer Bloque de Estudio</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <div class="space-y-8">
+                             <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#F4A261] card-light-yellow">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">🚶‍♀️ Salida del Trabajo y Llegada a Casa (17:00 - 18:00)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Utiliza este tiempo para desconectar mentalmente del trabajo y prepararte para tu entrenamiento. <br>Fundamento: La transición consciente ayuda a reducir el estrés acumulado y a cambiar el "chip" mental, preparando tu cerebro para las siguientes actividades.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#2A9D8F] card-light-teal">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">🏋️ Entrenamiento Físico (18:00 - 19:30)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Dedica tus 90 minutos de entrenamiento. <br>Fundamento: El ejercicio regular estimula la neurogénesis, mejora la plasticidad cerebral y regula los neurotransmisores clave para el estado de ánimo y el enfoque. Es un potente amortiguador del estrés y optimiza las funciones ejecutivas, preparando tu cerebro para el estudio posterior.</p>
+                                </div>
+                            </div>
+                             <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#F4A261] card-light-yellow">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">🍽️ Cena Equilibrada y Sesión de Estudio #1 (19:30 - 21:00)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Consume una cena que incluya proteínas magras, verduras y carbohidratos complejos (evita comidas pesadas). Después, inicia tu primera sesión de estudio de 60-90 minutos (2-3 Pomodoros). Aplica recuperación activa o intercalado. <br>Fundamento: Una cena equilibrada apoya el metabolismo energético sin interferir con la digestión antes del estudio. El estudio post-entrenamiento aprovecha el aumento de BDNF y neurotransmisores. La recuperación activa y el intercalado fortalecen las vías neuronales y la flexibilidad cognitiva.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#FDFCFB] rounded-xl p-8 shadow-md border border-gray-100 accordion-item">
+                    <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-bold text-3xl">
+                        <h3>🌙 Noche (21:00 en adelante): Consolidación y Recuperación</h3>
+                        <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                    </button>
+                    <div class="accordion-content mt-4">
+                        <div class="space-y-8">
+                            <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#2A9D8F] card-light-teal">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">📚 Sesión de Estudio #2 y Repaso Espaciado (21:00 - 22:00)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Realiza una segunda sesión de estudio más corta (1-2 Pomodoros) o dedica este tiempo a repasar material de días o semanas anteriores usando repetición espaciada. <br>Fundamento: Un segundo bloque de estudio más ligero puede ser efectivo para consolidar información sin sobrecargar el cerebro antes de dormir. La repetición espaciada combate la curva del olvido, fortaleciendo la memoria a largo plazo.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#81B29A] card-light-green">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">📝 Planificación del Día Siguiente y Desconexión Digital (22:00 - 22:30)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Dedica 5-10 minutos a definir las 2-3 tareas más importantes para mañana. Apaga pantallas (teléfonos, tabletas, ordenadores, TV). <br>Fundamento: La planificación reduce la ansiedad y la carga cognitiva del día siguiente. La luz azul de las pantallas suprime la melatonina, alterando el ritmo circadiano y la calidad del sueño. La desconexión es crucial para preparar tu cerebro para el descanso.</p>
+                                </div>
+                            </div>
+                             <div class="flex items-start p-5 rounded-lg shadow-sm border-2 border-[#E07A5F] card-light-orange">
+                                <input type="checkbox" class="custom-checkbox mt-1 mr-4" disabled>
+                                <div>
+                                    <h4 class="font-semibold text-xl text-[#3D405B]">😴 Rutina de Relajación y Sueño Reparador (22:30 en adelante)</h4>
+                                    <p class="text-gray-600 leading-relaxed">Realiza estiramientos suaves, un escaneo corporal o escucha una meditación guiada. Acuéstate a una hora consistente, apuntando a 7-9 horas de sueño en un ambiente oscuro, tranquilo y fresco. <br>Fundamento: Las prácticas de relajación reducen el cortisol, aumentan GABA y serotonina, y mejoran la conectividad cerebral, preparando tu cuerpo y mente para un sueño reparador esencial para la consolidación de la memoria. El sueño de calidad es indispensable para la neuroplasticidad y el rendimiento cognitivo óptimo, ya que es cuando el cerebro consolida lo aprendido.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq" class="mb-40 scroll-mt-28">
+                <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">❓ Preguntas Frecuentes (FAQ)</h2>
+                <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-16 leading-relaxed">
+                    Respuestas a algunas de las preguntas más comunes sobre el estudio óptimo y la neurociencia del aprendizaje.
+                </p>
+                <div id="accordion-faq" class="space-y-8 w-full">
+                    <div class="accordion-item card p-10 card-light-yellow border-2 border-[#F4A261]">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                            <h4>¿Es la multitarea realmente perjudicial para el estudio?</h4>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                            <p>Sí, la multitarea digital, especialmente con medios irrelevantes para la tarea principal, fragmenta la atención y sobrecarga la memoria de trabajo. Esto reduce la eficiencia y la profundidad del procesamiento de la información, ya que el cerebro no está diseñado para procesar múltiples flujos de medios simultáneamente de forma efectiva. Es mucho más productivo enfocarse en una sola tarea a la vez, lo cual es fundamental para <strong>aprender a pensar</strong> con profundidad.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item card p-10 card-light-teal border-2 border-[#2A9D8F]">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                            <h4>¿Cómo puedo mantener la motivación para seguir esta rutina?</h4>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                            <p>La motivación se refuerza con las recompensas y la consistencia. Establece pequeñas recompensas después de completar bloques de estudio o tareas (ej. un breve descanso, escuchar tu canción favorita). Empieza con pequeños pasos para construir el hábito y aumenta gradualmente. La visualización del progreso y la comprensión de los beneficios a largo plazo también son clave. Esto te ayuda a <strong>aprender a racionalizar</strong> tus esfuerzos y a <strong>aprender a aprender</strong> de forma sostenible.</p>
+                        </div>
+                    </div>
+                    <div class="accordion-item card p-10 card-light-green border-2 border-[#81B29A]">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-xl">
+                            <h4>¿Qué es un cronotipo y por qué es importante para el estudio?</h4>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4 text-gray-600 leading-relaxed text-lg">
+                            <p>Un cronotipo se refiere a la predisposición natural de una persona a experimentar picos de energía y sueño en ciertos momentos del día. Los "alondras" son más productivos por la mañana, mientras que los "búhos" lo son por la tarde/noche. Conocer tu cronotipo te permite alinear tus sesiones de estudio más exigentes con tus momentos de mayor lucidez y energía, optimizando así tu concentración y retención. Esto es parte de <strong>aprender a aprender</strong> de acuerdo a tu propia biología.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="recursos" class="mb-40 scroll-mt-28">
+                <h2 class="text-4xl md:text-5xl font-bold text-center mb-8 text-[#3D405B]">📚 Recursos Adicionales</h2>
+                <p class="text-xl text-center text-gray-700 max-w-4xl mx-auto mb-16 leading-relaxed">
+                    Aquí encontrarás enlaces a libros, artículos y herramientas que pueden ayudarte a profundizar en los pilares del estudio óptimo y a desarrollar aún más tus habilidades para <strong>aprender a aprender, a pensar, a racionalizar y a analizar.</strong>
+                </p>
+                <div class="flex flex-col space-y-12 w-full"> <!-- Added space-y-12 here -->
+                    <div class="card p-8 card-light-orange border-2 border-[#E07A5F] accordion-item">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                            <h3>Enlaces y Herramientas Útiles</h3>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4">
+                            <ul class="list-disc list-inside text-gray-700 space-y-4 text-lg">
+                                <li>**Libros Recomendados:**
+                                    <ul class="list-disc list-inside ml-6 space-y-2">
+                                        <li>"Make It Stick: The Science of Successful Learning" por Peter C. Brown, Henry L. Roediger III, y Mark A. McDaniel.</li>
+                                        <li>"Atomic Habits" por James Clear.</li>
+                                        <li>"Why We Sleep" por Matthew Walker.</li>
+                                    </ul>
+                                </li>
+                                <li>**Aplicaciones Útiles:**
+                                    <ul class="list-disc list-inside ml-6 space-y-2">
+                                        <li>**Anki:** Para repetición espaciada y recuperación activa (flashcards).</li>
+                                        <li>**Forest / Pomodoro Timer:** Para aplicar la técnica Pomodoro y mantener el enfoque.</li>
+                                        <li>**Headspace / Calm:** Para meditación y mindfulness.</li>
+                                    </ul>
+                                </li>
+                                <li>**Artículos y Sitios Web:**
+                                    <ul class="list-disc list-inside ml-6 space-y-2">
+                                        <li>Artículos de neurociencia cognitiva en sitios como <a href="https://www.brainfacts.org/" target="_blank" class="text-[#E07A5F] hover:underline">BrainFacts.org</a>.</li>
+                                        <li>Investigaciones sobre el sueño en la <a href="https://www.sleepfoundation.org/" target="_blank" class="text-[#E07A5F] hover:underline">Sleep Foundation</a>.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card p-8 card-light-teal border-2 border-[#2A9D8F] accordion-item">
+                        <button class="accordion-header w-full text-left flex justify-between items-center text-[#3D405B] font-semibold text-2xl">
+                            <h3>🤝 Aprendizaje Social y Colaborativo</h3>
+                            <span class="accordion-icon text-3xl font-light leading-none transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content mt-4">
+                            <p>El aprendizaje no es un proceso puramente individual. La interacción social y la colaboración pueden potenciar significativamente la comprensión y la retención de información.</p>
+                            <ul class="list-disc list-inside ml-6 space-y-2 mt-4">
+                                <li><strong>Efecto de Protegee (Enseñar a Otros):</strong> Explicar un concepto a otra persona es una de las formas más efectivas de consolidar tu propio conocimiento. Te obliga a organizar la información, identificar lagunas en tu comprensión y articular ideas de manera clara. Esto activa procesos de recuperación activa y elaboración.</li>
+                                <li>**Discusión y Debate:** Participar en discusiones con compañeros te expone a diferentes perspectivas, desafía tus suposiciones y te ayuda a refinar tu pensamiento crítico. El debate estructurado puede mejorar la capacidad de argumentación y el análisis de la información.</li>
+                                <li>**Retroalimentación Constructiva:** Recibir y dar retroalimentación en un entorno colaborativo es crucial para identificar errores, corregir malentendidos y mejorar el rendimiento.</li>
+                                <li>**Co-construcción del Conocimiento:** Trabajar en proyectos grupales o resolver problemas de forma colaborativa fomenta la sinergia intelectual, donde las ideas de cada miembro se complementan y enriquecen la comprensión colectiva.</li>
+                            </ul>
+                            <p class="mt-4">Integrar el aprendizaje social en tu rutina puede ser tan simple como discutir un tema con un amigo, unirte a un grupo de estudio o explicar lo que has aprendido a un familiar. Estas interacciones no solo mejoran tu comprensión, sino que también fortalecen tus habilidades para <strong>analizar</strong> y <strong>racionalizar</strong> la información desde múltiples ángulos.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-300 mt-32 py-12">
+        <div class="container mx-auto px-8 text-center">
+            <p class="text-base">&copy; 2025 NeuroEstudio. Todos los derechos reservados.</p>
+            <p class="text-sm mt-3">Una guía basada en la ciencia para potenciar tu aprendizaje y bienestar.</p>
+        </div>
+    </footer>
+
+<script>
+    // Moved chartOptions to a global scope or before initializeCharts function
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#3D405B',
+                    font: {
+                        family: 'Inter',
+                        size: 14
+                    }
+                }
+            },
+            tooltip: {
+                bodyFont: { family: 'Inter', size: 14 },
+                titleFont: { family: 'Inter', size: 16, weight: 'bold' },
+                padding: 12,
+                boxPadding: 6,
+                backgroundColor: 'rgba(61, 64, 91, 0.9)', /* Dark text color with transparency */
+                borderColor: '#3D405B',
+                borderWidth: 1,
+                cornerRadius: 8,
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#3D405B',
+                    font: { family: 'Inter', size: 12 },
+                    padding: 20, // Increased padding for y-axis labels
+                    autoSkip: false // Prevent auto-skipping labels
+                },
+                grid: {
+                    color: '#E0E0E0',
+                    drawBorder: false
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#3D405B',
+                    font: { family: 'Inter', size: 12 }
+                },
+                 grid: {
+                    display: false
+                }
+            }
+        }
+    };
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Accordion functionality for ALL accordion-item elements
+    const accordions = document.querySelectorAll('.accordion-item');
+    accordions.forEach(item => {
+        const header = item.querySelector('.accordion-header');
+        const content = item.querySelector('.accordion-content');
+        const icon = item.querySelector('.accordion-icon');
+
+        // Initialize all accordion contents as closed
+        content.style.maxHeight = null;
+        content.classList.remove('open');
+        icon.textContent = '+';
+
+        header.addEventListener('click', () => {
+            const isVisible = content.classList.contains('open');
+            if (isVisible) {
+                content.classList.remove('open');
+                content.style.maxHeight = null;
+                icon.textContent = '+';
+            } else {
+                // Close all other open accordions in the same parent container (optional, but good UX)
+                const parentContainer = item.closest('section') || item.parentElement;
+                parentContainer.querySelectorAll('.accordion-item .accordion-content.open').forEach(openContent => {
+                    if (openContent !== content) { // Don't close itself
+                        openContent.classList.remove('open');
+                        openContent.style.maxHeight = null;
+                        openContent.previousElementSibling.querySelector('.accordion-icon').textContent = '+';
+                    }
+                });
+
+                content.classList.add('open');
+                content.style.maxHeight = content.scrollHeight + 'px'; // Adjust max-height dynamically
+                icon.textContent = '−'; // Use minus sign for open
+            }
+        });
+    });
+    
+    // Initialize charts when the DOM is loaded
+    initializeCharts();
+
+    // Personalization Quiz Logic
+    const habitQuizForm = document.getElementById('habit-quiz');
+    const recommendationsOutput = document.getElementById('recommendations-output');
+    const recommendationsList = recommendationsOutput.querySelector('ul');
+
+    habitQuizForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        const sleepHours = document.getElementById('sleep-hours').value;
+        const exerciseFrequency = document.getElementById('exercise-frequency').value;
+        const screenTimeBeforeBed = document.getElementById('screen-time-before-bed').value;
+        const studyMethods = document.getElementById('study-methods').value;
+
+        let recommendations = [];
+
+        // Sleep recommendations
+        if (sleepHours === 'less-6' || sleepHours === '6-7' || sleepHours === 'more-9') {
+            recommendations.push('Considera ajustar tus horarios para dormir entre 7 y 9 horas. Visita la sección de <a href="#sueno" class="text-[#E07A5F] hover:underline">Descanso y Sueño</a>.');
+        }
+
+        // Exercise recommendations
+        if (exerciseFrequency === 'rarely' || exerciseFrequency === '1-2-week' || exerciseFrequency === '3-4-week') {
+            recommendations.push('Aumenta tu frecuencia de actividad física. Explora la sección de <a href="#ejercicio" class="text-[#E07A5F] hover:underline">Actividad Física</a> para sus beneficios cognitivos.');
+        }
+
+        // Screen time recommendations
+        if (screenTimeBeforeBed === 'more-2h' || screenTimeBeforeBed === '1-2h' || screenTimeBeforeBed === 'less-1h') {
+            recommendations.push('Reduce el tiempo de pantalla antes de dormir. Revisa la sección de <a href="#tecnologia" class="text-[#E07A5F] hover:underline">Gestión de la Tecnología</a> para mejorar tu higiene del sueño.');
+        }
+
+        // Study methods recommendations
+        if (studyMethods === 'passive' || studyMethods === 'mixed') {
+            recommendations.push('Incorpora más técnicas de recuperación activa y repetición espaciada. La sección de <a href="#metodos" class="text-[#E07A5F] hover:underline">Métodos de Estudio Eficaces</a> tiene más detalles.');
+        }
+
+        if (recommendations.length === 0) {
+            recommendations.push('¡Felicidades! Parece que ya tienes muchos hábitos óptimos. Sigue así y explora todas las secciones para mantener tu rendimiento al máximo.');
+        }
+
+        // Display recommendations
+        recommendationsList.innerHTML = ''; // Clear previous recommendations
+        recommendations.forEach(rec => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = rec; // Use innerHTML to allow links
+            recommendationsList.appendChild(listItem);
+        });
+        recommendationsOutput.classList.remove('hidden'); // Show the recommendations box
+        recommendationsOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
+// Function to initialize all charts (kept for consistency, though now only called once on DOMContentLoaded)
+function initializeCharts() {
+    // Destroy existing charts before creating new ones to avoid conflicts
+    if (window.studyMethodsChartInstance) window.studyMethodsChartInstance.destroy();
+    if (window.sleepChartInstance) window.sleepChartInstance.destroy();
+    if (window.meditationChartInstance) window.meditationChartInstance.destroy();
+
+    const studyMethodsCtx = document.getElementById('studyMethodsChart')?.getContext('2d');
+    if (studyMethodsCtx) {
+        window.studyMethodsChartInstance = new Chart(studyMethodsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Relectura Pasiva', 'Resúmenes', 'Rep. Espaciada', 'Rec. Activa'],
+                datasets: [{
+                    label: 'Efectividad en Retención a Largo Plazo (%)',
+                    data: [25, 50, 75, 90],
+                    backgroundColor: ['#F4A261', '#E9C46A', '#2A9D8F', '#264653'],
+                    borderColor: ['#F4A261', '#E9C46A', '#2A9D8F', '#264653'],
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: chartOptions
+        });
+    }
+
+    const sleepCtx = document.getElementById('sleepChart')?.getContext('2d');
+    if (sleepCtx) {
+        window.sleepChartInstance = new Chart(sleepCtx, {
+            type: 'line',
+            data: {
+                labels: ['0h', '1.5h', '3h', '4.5h', '6h', '7.5h'],
+                datasets: [{
+                    label: 'Etapas del Sueño (Ciclos de ~90min)',
+                    data: [1, 3, 2, 4, 3, 4],
+                    fill: false,
+                    borderColor: '#81B29A',
+                    tension: 0.4,
+                    pointBackgroundColor: '#81B29A',
+                    pointBorderColor: '#81B29A',
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                ...chartOptions,
+                 scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value, index, values) {
+                                const stages = {1: 'Ligero', 2: 'Profundo (NREM)', 3: 'Ligero', 4: 'REM'};
+                                return stages[value] || '';
+                            },
+                            color: '#3D405B',
+                            font: { family: 'Inter', size: 12 },
+                            padding: 20, // Increased padding for y-axis labels
+                            autoSkip: false // Prevent auto-skipping labels
+                        },
+                        grid: {
+                            color: '#E0E0E0',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#3D405B',
+                            font: { family: 'Inter', size: 12 }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                 },
+                 plugins: {
+                     ...chartOptions.plugins,
+                     tooltip: {
+                         callbacks: {
+                            label: function(context) {
+                                const stages = {1: 'Etapa Ligera', 2: 'Sueño Profundo: consolidación física y de memoria declarativa.', 3: 'Etapa Ligera', 4: 'Sueño REM: consolidación de memoria procedural y emocional.'};
+                                return stages[context.parsed.y] || '';
+                            }
+                         }
+                     }
+                 }
+            }
+        });
+    }
+
+    const meditationCtx = document.getElementById('meditationChart')?.getContext('2d');
+    if(meditationCtx) {
+        window.meditationChartInstance = new Chart(meditationCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Amígdala (Estrés)', 'Corteza Prefrontal (Foco)'], // Corrected "Corteza"
+                datasets: [
+                    {
+                        label: 'Actividad Antes de Meditar (%)',
+                        data: [80, 50],
+                        backgroundColor: '#E07A5F',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Actividad Después de Meditar (%)', // Added "Después de Meditar (%)"
+                        data: [40, 85],
+                        backgroundColor: '#81B29A',
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                ...chartOptions,
+                plugins: {
+                    ...chartOptions.plugins,
+                    tooltip: {
+                         callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += `${context.parsed.x}%`;
+                                return label;
+                            }
+                         }
+                     }
+                 },
+                 indexAxis: 'y',
+                 scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#3D405B',
+                            font: { family: 'Inter', size: 12 }
+                        },
+                        grid: {
+                            color: '#E0E0E0',
+                            drawBorder: false
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#3D405B',
+                            font: { family: 'Inter', size: 12 },
+                            padding: 20, // Increased padding for y-axis labels
+                            autoSkip: false // Prevent auto-skipping labels
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                 }
+            }
+        });
+    }
+}
+</script>
+</body>
+</html>
